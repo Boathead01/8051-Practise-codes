@@ -1,0 +1,156 @@
+#include <reg51.h>
+#define lcd_data P2
+//registor selectors instruction and data
+sbit rs=P1^0; //reg select
+sbit rw=P1^1; //rewrite
+sbit en=P1^2;  //enable
+sbit DIN = P1^3 ; // Data In
+sbit CLK =P1^4; // Clock
+sbit CS  = P1^5 ; // Chip Select
+// values
+unsigned char st[] = "Mic testing 1 2 3 1 2 3 ";
+unsigned int len1 = sizeof (st)/sizeof(st[0]);
+unsigned int count=0, j, i;
+unsigned char ch,ch2;
+
+// function definition
+void lcd_init();
+void cmd(unsigned char a);
+void dat(unsigned char b);
+void show(unsigned char *s);
+void lcd_delay();
+
+void lcd_init()
+{
+    cmd(0x38);   //defining is first, the peripherals and the line
+    cmd(0x0e);   
+    cmd(0x01);
+    cmd(0x06);  //entry mode - after refreshing we're ready to use it
+    cmd(0x0c);  //defining cursor
+    cmd(0x80);    // start from the first row first column
+}
+
+void cmd(unsigned char a)
+{
+    lcd_data=a;
+    rs=0;   //registers select
+    rw=0; // write mode
+    en=1; //enabling writing to the registers, power should be on when in use
+    lcd_delay();
+    en=0;
+}
+
+void dat(unsigned char b)
+{
+    lcd_data=b;
+    rs=1;
+    rw=0;
+    en=1;
+	  lcd_delay();
+    en=0;
+}
+
+void show(unsigned char *s)
+{
+    while(*s) {
+        dat(*s++);
+    }
+}
+
+void lcd_delay(){
+	for (i=0;i<10000;i++){
+	}
+}
+
+void delay(unsigned int time) {
+    unsigned int i, j;
+    for (i = 0; i < time; i++) {
+        for (j = 0; j < 1275; j++);
+    }
+}
+
+void sendData(unsigned char address, unsigned char datas) {
+    unsigned char i;
+
+    CS = 0;  // Enable communication
+
+    // Send address byte
+    for (i = 0; i < 8; i++) {
+        DIN = (address & 0x80) ? 1 : 0;  // Send MSB first
+        CLK = 1;
+        address <<= 1;
+        CLK = 0;
+    }
+
+    // Send data byte
+    for (i = 0; i < 8; i++) {
+        DIN = (datas & 0x80) ? 1 : 0;  // Send MSB first
+        CLK = 1;
+        datas <<= 1;
+        CLK = 0;
+    }
+
+    CS = 1;  // Disable communication
+}
+
+
+
+void initMAX7219() {
+    sendData(0x09, 0x00);  // Decode mode: No decoding (for matrix)
+    sendData(0x0A, 0x0F);  // Intensity: Maximum brightness
+    sendData(0x0B, 0x07);  // Scan limit: Display all 8 rows
+    sendData(0x0C, 0x01);  // Shutdown: Normal operation
+    sendData(0x0F, 0x00);  // Display test: Off
+}
+
+void hi() {
+		unsigned char first_row_h[16] = {0x80,0x01,0x02,0x04,0x08,0x10,0x20,0xc0};
+		unsigned char fourth_row_h[16] = {0x80,0x81,0x83,0x87,0x8f,0x9f,0xbf,0xff};
+    unsigned char second_row[16] = {0xc0,0x01,0x02,0x04,0x08,0x10,0x40}; // Activates the DP column
+		unsigned char first_row[16]={0xc0,0x01,0x82,0x05,0x0a,0x14,0x50,0x40};
+		unsigned char fourth_row[16]={0xff,0x7f,0xfe,0x7d,0x7a,0x74,0x50,0x40};
+	unsigned char row ;
+		for (row=0;row<8;row++){
+			sendData (1,first_row_h[row]);
+			sendData (2,first_row_h[row]);
+			sendData (3,first_row_h[row]);
+			sendData (4,fourth_row_h[row]);
+			sendData (5,first_row_h[row]);
+			sendData (6,first_row_h[row]);
+			sendData (7,first_row_h[row]);
+			sendData (8,first_row_h[row]);
+			delay(100);
+			sendData(row, 0x00);  
+		}
+    for (row = 0; row < 8; row++) {
+        sendData(1, first_row[row]); // Light up one LED in the DP column
+        sendData(2,	second_row[row]);		
+			  sendData(3,	first_row[row]);	
+        sendData(4,	fourth_row[row]);		
+				sendData(5,	first_row[row]);		
+				sendData(6,	first_row[row]);		
+				sendData(7,	first_row[row]);		
+				sendData(8,	first_row[row]);	
+        delay(100);
+        sendData(row, 0x00);       // Turn off the row before moving to the next
+    }
+	}
+
+
+void main()
+{
+				lcd_init();
+				initMAX7219();
+	      hi();
+			  while(1){
+					cmd(0x80);
+					show(st);
+          ch=st[0];
+					for(i=0;i<=len1;i++){
+							st[i]=st[i+1];
+					}
+					st[i-1]=ch;
+					st[i]='\0';
+					cmd(0xc0);
+ }
+}
