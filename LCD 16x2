@@ -1,0 +1,81 @@
+#include <reg51.h>
+#define lcd_data P2
+//registor selectors instruction and data
+sbit rs=P3^0; //reg select
+sbit rw=P3^1; //rewrite
+sbit en=P3^2;  //enable
+
+void lcd_init();
+void cmd(unsigned char a);
+void dat(unsigned char b);
+void show(unsigned char *s);
+void lcd_delay();
+
+void lcd_init()
+{
+	cmd(0x38);   //defining is first, the peripherals and the line
+    cmd(0x0e);   
+    cmd(0x01);
+    cmd(0x06);  //entry mode - after refreshing we're ready to use it
+    cmd(0x0c);  //defining cursor
+    cmd(0x80);    // start from the first row first column
+    
+}
+
+void cmd(unsigned char a)
+{
+	
+    lcd_data=a;
+    rs=0;   //registers select
+    rw=0; // write mode
+    en=1; //enabling writing to the registers, power should be on when in use
+    lcd_delay();
+    en=0;
+}
+
+void dat(unsigned char b)
+{
+    lcd_data=b;
+    rs=1;
+    rw=0;
+    en=1;
+	  lcd_delay();
+    en=0;
+}
+
+void show(unsigned char *s)
+{
+    while(*s) {
+        dat(*s++);
+    }
+}
+
+void lcd_delay()
+{
+	TMOD = 0x01; // Timer 0 in mode 1 (16-bit timer)
+    TL0 = 0x00;  // Load the lower 8 bits of the initial count
+    TH0 = 0xDC;  // Load the higher 8 bits of the initial count
+    TR0 = 1;     // Start Timer 0
+    while (TF0 == 0); // Wait for the overflow flag to be set 
+    TR0 = 0;     // Stop Timer 0
+    TF0 = 0;     // Clear the overflow flag
+}
+
+int main()
+{
+	lcd_init();
+    while(1) {
+			cmd(0x80);
+			dat('c');
+			cmd(0x01);
+			lcd_delay();
+			/*
+        cmd(0x80);
+			  show("    Hello   ");  
+        cmd(0xc0);
+        show("   People  ");
+        lcd_delay();
+        cmd(0x01);
+        lcd_delay();*/
+    }
+}
