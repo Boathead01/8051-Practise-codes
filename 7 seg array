@@ -1,0 +1,109 @@
+#include <reg51.h>
+#include <stdio.h>
+sbit port1=P1^0;
+sbit port2=P1^1;
+sbit port3=P1^2;
+sbit port4=P1^3;
+sbit port5=P1^4;
+sbit port6=P1^5;
+sbit port7=P1^6;
+char arr1[7]={0xff,0x00,0x00,0xff,0xff,0xff,0xff};
+char arr2[7]={0x00,0x00,0xff,0x00,0x00,0xff,0x00};
+char arr3[7]={0x00,0x00,0x00,0x00,0xff,0xff,0x00};
+char arr4[7]={0xff,0xff,0x00,0xff,0xff,0x00,0x00};
+char arr5[7]={0x00,0xff,0x00,0x00,0xff,0x00,0x00};
+char arr6[7]={0x00,0xff,0x00,0x00,0x00,0x00,0x00};
+sbit d1=P2^0;
+sbit d2=P2^1;
+sbit d3=P2^2;
+sbit d4=P2^3;
+sbit d5=P2^4;
+sbit d6=P2^5;
+int i,j;
+//02356
+void delay(){
+	for (i=0;i<1000;i++){
+		for(j=0;j<50;j++);
+	}
+}
+void display(){
+	if (d1==1){
+		port1=arr1[0];
+		port2=arr1[1];
+		port3=arr1[2];
+		port4=arr1[3];
+		port5=arr1[4];
+		port6=arr1[5];
+		port7=arr1[6];
+	}
+	else if(d2==1){
+		port1=arr2[0];
+		port2=arr2[1];
+		port3=arr2[2];
+		port4=arr2[3];
+		port5=arr2[4];
+		port6=arr2[5];
+		port7=arr2[6];
+	}
+	else if (d3==1){
+		port1=arr3[0];
+		port2=arr3[1];
+		port3=arr3[2];
+		port4=arr3[3];
+		port5=arr3[4];
+		port6=arr3[5];
+		port7=arr3[6];
+	}
+	else if(d4==1){
+		port1=arr4[0];
+		port2=arr4[1];
+		port3=arr4[2];
+		port4=arr4[3];
+		port5=arr4[4];
+		port6=arr4[5];
+		port7=arr4[6];
+	}
+	else if(d5==1){
+		port1=arr5[0];
+		port2=arr5[1];
+		port3=arr5[2];
+		port4=arr5[3];
+		port5=arr5[4];
+		port6=arr5[5];
+		port7=arr5[6];
+	}
+	else{
+		port1=arr6[0];
+		port2=arr6[1];
+		port3=arr6[2];
+		port4=arr6[3];
+		port5=arr6[4];
+		port6=arr6[5];
+		port7=arr6[6];
+	}
+	
+}
+void main(){
+	while(1){
+		for (i=0;i<7;i++){
+			d1=1,d2=0,d3=0,d4=0,d5=0,d6=0;
+			display();
+			delay();
+			d1=0,d2=1,d3=0,d4=0,d5=0,d6=0;
+			display();
+			delay();
+			d1=0,d2=0,d3=1,d4=0,d5=0,d6=0;
+			display();
+			delay();
+			d1=0,d2=0,d3=0,d4=1,d5=0,d6=0;
+			display();
+			delay();
+			d1=0,d2=0,d3=0,d4=0,d5=1,d6=0;
+			display();
+			delay();
+			d1=0,d2=0,d3=0,d4=0,d5=0,d6=1;
+			display();
+			delay();
+		}
+	}
+}
